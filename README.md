@@ -1,6 +1,6 @@
 # RackCurler
 
-TODO: Write a gem description
+Given a Rack env, generate a nicely formatted curl command that approximates the request. Suitable for debugging.
 
 ## Installation
 
@@ -18,7 +18,9 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Where ```env``` is a Rack env:
+
+   RackCurler.to_curl(env)
 
 ## Contributing
 
