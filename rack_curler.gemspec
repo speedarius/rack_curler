@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["speedarius@gmail.com"]
   spec.description   = %q{Generate curl commands that approximate rack requests.}
   spec.summary       = %q{Given a rack env, generate a prettified curl command that approximates the request, including headers and request body. Suitable for debugging.}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/speedarius/rack_curler"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
