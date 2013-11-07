@@ -33,11 +33,11 @@ module RackCurler
     url = Rack::Request.new(env).url
     
     curl_command = "curl '#{url}'"
-    curl_command << " -X #{env['REQUEST_METHOD']}" unless ['GET', 'POST'].member?(env['REQUEST_METHOD'])
+    curl_command << " \\\n   -X #{env['REQUEST_METHOD']}" unless ['GET', 'POST'].member?(env['REQUEST_METHOD'])
     headers.each_pair do |header, value|
-      curl_command << " -H '#{header}: #{value}'"
+      curl_command << " \\\n   -H '#{header}: #{value}'"
     end
-    curl_command << " --data '#{body}'" if body && !body.empty?
+    curl_command << " \\\n   --data '#{body}'" if body && !body.empty?
 
     curl_command
   end
