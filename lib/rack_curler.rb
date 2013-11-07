@@ -21,9 +21,11 @@ module RackCurler
     body = env['rack.input'].read
     env['rack.input'].rewind
 
+    headerize = lambda { |raw| raw.split(/[ _\-]/).map(&:capitalize).join('-') }
+
     headers = {}.tap do |h|
       env.select { |k, v| k =~ /^HTTP_/ || k == 'CONTENT_TYPE' }
-        .each { |k, v| h[k.sub(/^HTTP_/, '').titlecase.gsub(' ', '-')] = v}
+        .each { |k, v| h[headerize.call(k.sub(/^HTTP_/, ''))] = v}
       h.select! { |k, v| !headers_to_drop.member?(k) }
       h.select! { |k, v| header_defaults[k].nil? || header_defaults[k] != v }
     end
@@ -35,7 +37,7 @@ module RackCurler
     headers.each_pair do |header, value|
       curl_command << " -H '#{header}: #{value}'"
     end
-    curl_command << " --data '#{body}'" if body.present?
+    curl_command << " --data '#{body}'" if body && !body.empty?
 
     curl_command
   end
