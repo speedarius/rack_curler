@@ -7,19 +7,21 @@ describe RackCurler do
   end
 
   describe "to_curl" do
-    describe 'for a GET to http://foo.example.com' do
-      before(:each) do
-        @env = Rack::MockRequest.env_for 'http://foo.example.com'
-        @env['HTTP_VERSION'] = '1.2.3.4'
-        @env['HTTP_HOST'] = 'foo.example.com'
-        @env['HTTP_CONNECTION'] = 'close'
-        @env['HTTP_ACCEPT_ENCODING'] = 'deflate, gzip'
-        @env['HTTP_DATE'] = '2013-11-06 16:52:05 -0800'
-        @env['HTTP_ACCEPT'] = '*/*'
-        @env['HTTP_SOME_OTHER_HEADER'] = 'header value 123'
-        @output = RackCurler.to_curl(@env)
+    before(:each) do
+      @get_env = lambda do |options={}|
+        env = Rack::MockRequest.env_for('http://foo.example.com', options)
+        env['HTTP_VERSION'] = '1.2.3.4'
+        env['HTTP_HOST'] = 'foo.example.com'
+        env['HTTP_CONNECTION'] = 'close'
+        env['HTTP_ACCEPT_ENCODING'] = 'deflate, gzip'
+        env['HTTP_DATE'] = '2013-11-06 16:52:05 -0800'
+        env['HTTP_ACCEPT'] = '*/*'
+        env['HTTP_SOME_OTHER_HEADER'] = 'header value 123'
+        env
       end
+    end
 
+    shared_examples_for "a request for http://foo.example.com" do
       it "is a curl command" do
         @output.should match /^curl /
       end
@@ -56,14 +58,6 @@ describe RackCurler do
         @output.should match /-H 'Some-Other-Header: header value 123'/
       end
 
-      it "does not have a -X argument (curl will assume it is a GET)" do
-        @output.should_not match /-X GET/
-      end
-
-      it "does not have a --data argument" do
-        @output.should_not match /--data/
-      end
-
       describe 'with non-default Accept' do
         before(:each) do
           @env['HTTP_ACCEPT'] = 'something specific'
@@ -76,14 +70,13 @@ describe RackCurler do
       end
     end
 
-    describe 'for a PUT to http://foo.example.com' do
-      before(:each) do
-        @env = Rack::MockRequest.env_for 'http://foo.example.com', :input => 'some body'
-        @env['CONTENT_LENGTH'] = '9'
-        @env['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
-        @output = RackCurler.to_curl(@env)
+    shared_examples_for "a request for http://foo.example.com without a body" do
+      it "does not have a --data argument" do
+        @output.should_not match /--data/
       end
+    end
 
+    shared_examples_for "a request for http://foo.example.com with a body" do
       it "does not specify a Content-Length header (curl will set this for you)" do
         @output.should_not match /-H 'Content-Length:/
       end
@@ -108,10 +101,60 @@ describe RackCurler do
       end
     end
 
-    describe 'for a POST to http://foo.example.com' do
+    describe 'for a GET to http://foo.example.com' do
+      before(:each) do
+        @env = @get_env.call :method => 'GET'
+        @output = RackCurler.to_curl(@env)
+      end
+
+      it_behaves_like "a request for http://foo.example.com"
+      it_behaves_like "a request for http://foo.example.com without a body"
+
+      it "does not have a -X argument (curl will assume it is a GET)" do
+        @output.should_not match /-X GET/
+      end
     end
 
     describe 'for a DELETE to http://foo.example.com' do
+      before(:each) do
+        @env = @get_env.call :method => 'DELETE'
+        @output = RackCurler.to_curl(@env)
+      end
+
+      it_behaves_like "a request for http://foo.example.com"
+      it_behaves_like "a request for http://foo.example.com without a body"
+
+      it "specifies -X DELETE" do
+        @output.should match /-X DELETE/
+      end
+    end
+
+    describe 'for a PUT to http://foo.example.com' do
+      before(:each) do
+        @env = @get_env.call :method => 'PUT', :input => 'some body'
+        @output = RackCurler.to_curl(@env)
+      end
+
+      it_behaves_like "a request for http://foo.example.com"
+      it_behaves_like "a request for http://foo.example.com with a body"
+
+      it "specifies -X PUT" do
+        @output.should match /-X PUT/
+      end
+    end
+
+    describe 'for a POST to http://foo.example.com' do
+      before(:each) do
+        @env = @get_env.call :method => 'POST', :input => 'some body'
+        @output = RackCurler.to_curl(@env)
+      end
+
+      it_behaves_like "a request for http://foo.example.com"
+      it_behaves_like "a request for http://foo.example.com with a body"
+
+      it "does not specify -X POST (curl will assume it is a POST)" do
+        @output.should_not match /-X POST/
+      end
     end
   end
 end
