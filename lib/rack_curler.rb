@@ -1,7 +1,7 @@
 require "rack_curler/version"
 
 module RackCurler
-  def self.to_curl(env)
+  def self.to_curl(env, options={})
 
     headers_to_drop = [
       'Version',         # make your life easy and let curl set this
@@ -31,13 +31,15 @@ module RackCurler
     end
     
     url = Rack::Request.new(env).url
-    
+
+    line_prefix = options[:pretty] ? " \\\n   " : ' '
+
     curl_command = "curl '#{url}'"
-    curl_command << " \\\n   -X #{env['REQUEST_METHOD']}" unless ['GET', 'POST'].member?(env['REQUEST_METHOD'])
+    curl_command << line_prefix << "-X #{env['REQUEST_METHOD']}" unless ['GET', 'POST'].member?(env['REQUEST_METHOD'])
     headers.each_pair do |header, value|
-      curl_command << " \\\n   -H '#{header}: #{value}'"
+      curl_command << line_prefix << "-H '#{header}: #{value}'"
     end
-    curl_command << " \\\n   --data '#{body}'" if body && !body.empty?
+    curl_command << line_prefix << "--data '#{body}'" if body && !body.empty?
 
     curl_command
   end

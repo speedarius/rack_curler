@@ -68,6 +68,20 @@ describe RackCurler do
           @output.should match /-H 'Accept: something specific'/
         end
       end
+
+      it "does not have backslash-newline formatting" do
+        @output.should_not match /\\\n/
+      end
+      
+      describe 'with pretty formatting' do
+        before(:each) do
+          @output = RackCurler.to_curl(@env, :pretty => true)
+        end
+
+        it "has leading backslashes and newlines preceding -H (so it appears on its own line)" do
+          @output.should match /\s\\\n(\s+)-H/
+        end
+      end
     end
 
     shared_examples_for "a request for http://foo.example.com without a body" do
@@ -87,6 +101,16 @@ describe RackCurler do
 
       it "includes the body in a --data argument" do
         @output.should match /--data 'some body'/
+      end
+
+      describe "with pretty formatting" do
+        before(:each) do
+          @output = RackCurler.to_curl(@env, :pretty => true)
+        end
+
+        it "precedes --data with a backslash and newline" do
+          @output.should match /\s\\\n(\s+)--data/
+        end
       end
 
       describe 'with non-default Content-Type' do
@@ -127,6 +151,16 @@ describe RackCurler do
       it "specifies -X DELETE" do
         @output.should match /-X DELETE/
       end
+
+      describe "with pretty formatting" do
+        before(:each) do
+          @output = RackCurler.to_curl(@env, :pretty => true)
+        end
+
+        it "precedes -X with a backslash and newline" do
+          @output.should match /\s\\\n(\s+)-X/
+        end
+      end
     end
 
     describe 'for a PUT to http://foo.example.com' do
@@ -137,6 +171,16 @@ describe RackCurler do
 
       it_behaves_like "a request for http://foo.example.com"
       it_behaves_like "a request for http://foo.example.com with a body"
+
+      describe "with pretty formatting" do
+        before(:each) do
+          @output = RackCurler.to_curl(@env, :pretty => true)
+        end
+
+        it "precedes -X with a backslash and newline" do
+          @output.should match /\s\\\n(\s+)-X/
+        end
+      end
 
       it "specifies -X PUT" do
         @output.should match /-X PUT/
