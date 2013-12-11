@@ -20,7 +20,7 @@ Or install it yourself as:
 
 Where ```env``` is a Rack env:
 
-    RackCurler.to_curl(env)
+    RackCurler.to_curl(env, :pretty => true)
 
 Will output something like (depending on the request):
 
@@ -32,6 +32,12 @@ Will output something like (depending on the request):
        -H 'Accept: application/json' \
        -H 'Cookie: crazy_cookie=alskdjfhasldkjfhxalsdufhxwoeufhxa; normal_cookie=asdfsadhfjlkdsajflksadjfh;'
        --data 'super awesome request body'
+
+If you don't want the backslash newline formatting, you can omit the ```:pretty``` option and you will get something like:
+
+    curl 'https://foo.example.com/hello/times' -X PUT -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Forwarded-Proto: https' -H 'Authorization: Basic laiusdfhalnsidufhxalnsuhflsadufhxadlsunxdsauhnlaudflnsuhadsf==' -H 'Accept: application/json' -H 'Cookie: crazy_cookie=alskdjfhasldkjfhxalsdufhxwoeufhxa; normal_cookie=asdfsadhfjlkdsajflksadjfh;' --data 'super awesome request body'
+
+
 
 ## Contributing
 
